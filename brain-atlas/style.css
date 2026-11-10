@@ -143,3 +143,9 @@ button { font-family: inherit; cursor: pointer; }
 .scroll-dark { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.22) transparent; }
 .scroll-dark::-webkit-scrollbar { width: 8px; }
 .scroll-dark::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.18); border-radius: 9px; }
+
+/* Refinamiento visual discreto: no altera geometría ni interacción 3D. */
+.glass { box-shadow: 0 2px 8px rgba(8,12,25,.16), 0 20px 48px -12px rgba(8,12,25,.44); border-color: rgba(255,255,255,.76); }
+.glass button, .glass-dark button { transition: background .18s ease, box-shadow .18s ease, transform .18s ease; }
+.glass button:hover, .glass-dark button:hover { box-shadow: 0 3px 12px rgba(12,20,45,.14); }
+.stage::after { background: radial-gradient(ellipse at 50% 44%, transparent 46%, rgba(0,0,0,.39) 100%); }
