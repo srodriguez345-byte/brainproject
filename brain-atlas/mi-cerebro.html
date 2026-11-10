@@ -4,8 +4,8 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
 <title>Mi cerebro 3D | Proyecto biomédico</title>
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#080d18;color:#f5f7ff;font-family:Inter,system-ui,Arial}
-header{position:absolute;z-index:2;top:0;left:0;right:0;padding:18px 22px;background:linear-gradient(#080d18e8,transparent)}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:radial-gradient(ellipse at 50% 48%,#293447 0%,#111827 48%,#070b13 100%);color:#f8f4f2;font-family:Inter,system-ui,Arial}
+header{position:absolute;z-index:2;top:0;left:0;right:0;padding:18px 22px;background:linear-gradient(#080d18ed,transparent)}
 h1{font-size:clamp(19px,3vw,28px);margin:0 0 5px}p{margin:0;color:#b9c5da;font-size:13px}
 #stage{position:absolute;inset:0}canvas{width:100%;height:100%;display:block;touch-action:none}
 .controls{position:absolute;z-index:2;bottom:22px;left:50%;transform:translateX(-50%);display:flex;gap:10px;align-items:center;background:#172238d9;border:1px solid #ffffff24;padding:10px;border-radius:16px;backdrop-filter:blur(12px)}
@@ -26,19 +26,19 @@ a{color:#9dbbff}
 const canvas=document.getElementById('view'),status=document.getElementById('status');
 const renderer=new THREE.WebGLRenderer({canvas,antialias:true,alpha:true});
 renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.setSize(innerWidth,innerHeight);
-renderer.outputEncoding=THREE.sRGBEncoding;renderer.setClearColor(0x000000,0);
+renderer.outputEncoding=THREE.sRGBEncoding;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.12;renderer.setClearColor(0x000000,0);
 const scene=new THREE.Scene();const camera=new THREE.PerspectiveCamera(38,innerWidth/innerHeight,.01,100);
 camera.position.set(0,0,4.4);
-scene.add(new THREE.HemisphereLight(0xe1e9ff,0x252a3a,1.25));
-const key=new THREE.DirectionalLight(0xffffff,2.1);key.position.set(3,5,6);scene.add(key);
-const fill=new THREE.DirectionalLight(0x8bbdff,1.1);fill.position.set(-5,1,-4);scene.add(fill);
+scene.add(new THREE.HemisphereLight(0xffeee9,0x39303a,1.65));
+const key=new THREE.DirectionalLight(0xffe2d7,2.5);key.position.set(3,5,6);scene.add(key);
+const fill=new THREE.DirectionalLight(0xb9d7ff,1.35);fill.position.set(-5,1,-4);scene.add(fill);\nconst rim=new THREE.DirectionalLight(0xff9e91,1.8);rim.position.set(0,4,-5);scene.add(rim);\nconst soft=new THREE.PointLight(0xffc6b8,.55,12);soft.position.set(0,-3,3);scene.add(soft);
 const root=new THREE.Group();scene.add(root);
 let model=null,rotating=true,drag=false,lastX=0,lastY=0,zoom=4.4;
 new THREE.GLTFLoader().load('./models/sara-brain.glb',g=>{
-model=g.scene;root.add(model);
+model=g.scene;root.add(model);\nmodel.traverse(obj=>{if(obj.isMesh){obj.castShadow=true;obj.receiveShadow=true;const mats=Array.isArray(obj.material)?obj.material:[obj.material];mats.forEach(m=>{if(m&&m.isMeshStandardMaterial){m.roughness=Math.max(m.roughness||0,.72);m.metalness=0;m.needsUpdate=true;}});}});
 const box=new THREE.Box3().setFromObject(model),center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());
 model.position.sub(center);const max=Math.max(size.x,size.y,size.z)||1;model.scale.setScalar(2.3/max);
-status.textContent='Arrastra para girar · Usa + y − para acercar o alejar';
+status.textContent='Modelo anatómico 3D · Arrastra para girar y usa + / − para explorar';
 },undefined,e=>{console.error(e);status.textContent='No se pudo cargar el modelo. Revisa que el archivo esté en brain-atlas/models.'});
 function resize(){renderer.setSize(innerWidth,innerHeight);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix()}
 addEventListener('resize',resize);
