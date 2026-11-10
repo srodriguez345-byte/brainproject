@@ -86,7 +86,7 @@
   <script type="text/babel" src="selection-card.jsx"></script>
   <script type="text/babel" src="narration.jsx"></script>
   <script type="text/babel" src="lessons.jsx"></script>
-  <script type="text/babel" src="app.jsx"></script>
+  <script type="text/babel" src="app.jsx?v=20261110b"></script>
   <script defer src="traduccion-es.js"></script>
 
   <button id="open-ar" type="button" style="position:fixed;right:18px;bottom:18px;z-index:99999;background:#2563eb;color:white;padding:14px 18px;border:0;border-radius:999px;font:600 15px system-ui,sans-serif;box-shadow:0 5px 22px #0008;cursor:pointer">🧠 Ver en realidad aumentada</button>
@@ -99,7 +99,7 @@
       const panel = document.getElementById('ar-panel');
       const frame = document.getElementById('ar-frame');
       document.getElementById('open-ar').addEventListener('click', () => {
-        if (!frame.src) frame.src = './ar.html';
+        if (!frame.src) frame.src = './ar.html?v=20261110b';
         panel.hidden = false;
       });
       document.getElementById('close-ar').addEventListener('click', () => { panel.hidden = true; });
