@@ -33,14 +33,18 @@ model.addEventListener('model-loaded',()=>{
  const root=model.getObject3D('mesh');if(!root)return;modelRoot=root;
  const THREE=AFRAME.THREE;
  root.updateMatrixWorld(true);
- const box=new THREE.Box3().setFromObject(root),size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
+ let box,size,center;
  const content=new THREE.Group();content.name='brain-normalized';
  const meshes=[];root.traverse(o=>{if(o.isMesh)meshes.push(o)});
  for(const m of meshes){const cat=m.userData?.bx_cat||m.parent?.userData?.bx_cat||'';
  if(!['cortex','cerebellum','brainstem'].includes(cat))m.visible=false;
  if(cat==='cortex'||cat==='cerebellum'||cat==='brainstem'){m.material=new THREE.MeshStandardMaterial({color:cat==='cortex'?0x8464ed:0x9d82f8,roughness:.42,metalness:.08,emissive:0x31117a,emissiveIntensity:.25})}}
- // Keep the brain in the marker's local coordinate system.
- root.position.sub(center);const k=.65/Math.max(size.x,size.y,size.z);root.scale.setScalar(k);
+ // Recalculate bounds after hiding extra structures, then apply scale to translation too.
+ root.updateMatrixWorld(true);
+ box=new THREE.Box3().setFromObject(root);size=box.getSize(new THREE.Vector3());center=box.getCenter(new THREE.Vector3());
+ const k=.65/Math.max(size.x,size.y,size.z);
+ root.scale.setScalar(k);root.position.copy(center).multiplyScalar(-k);
+ root.updateMatrixWorld(true);
  const holder=document.createElement('a-entity');holder.setAttribute('position','0 0.18 0');marker.appendChild(holder);
  for(const [id,r] of Object.entries(regions)){
   const dir=new THREE.Vector3(...r[2]).normalize();
@@ -50,7 +54,7 @@ model.addEventListener('model-loaded',()=>{
   label.setAttribute('material',{color:'#6d4cb2',opacity:.88,side:'double',depthTest:false});
   label.setAttribute('look-at','[camera]');holder.appendChild(label);labels[id]=label;
  }
- hint.textContent='Cerebro ajustado a tamaño reducido. Enfoca HIRO para verlo centrado sobre el marcador.';
+ hint.textContent='Cerebro reajustado y centrado. Enfoca HIRO para verlo sobre el marcador.';
 });
 model.addEventListener('model-error',()=>{hint.textContent='No se pudo cargar el modelo anatómico en RA. Vuelve al visor 3D.'});
 </script></body></html>
