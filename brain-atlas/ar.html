@@ -43,7 +43,7 @@ const regions={
 };
 const stage=document.getElementById('stage'),view=document.getElementById('view'),markers=document.getElementById('markers');
 const scene=new THREE.Scene();scene.background=null;
-const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.setClearColor(0,0);view.append(renderer.domElement);
+const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio,2));renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.setClearColor(0,0);renderer.domElement.style.width='100%';renderer.domElement.style.height='100%';view.append(renderer.domElement);
 const camera=new THREE.PerspectiveCamera(38,1,.01,100);camera.position.set(0,.15,3.3);
 const controls=new OrbitControls(camera,renderer.domElement);controls.enableDamping=true;controls.minDistance=1.65;controls.maxDistance=5.5;controls.autoRotate=false;controls.target.set(0,0,0);
 scene.add(new THREE.HemisphereLight(0xe3d8ff,0x25104d,2.2));
@@ -54,7 +54,7 @@ const loader=new GLTFLoader();loader.setDRACOLoader(draco);
 const points={},buttons={};let brain=null,selected=null,moveTo=null;
 const purple=new THREE.MeshStandardMaterial({color:0x8061f1,roughness:.43,metalness:.08,emissive:0x351486,emissiveIntensity:.27});
 const lightPurple=new THREE.MeshStandardMaterial({color:0x9878fa,roughness:.53,metalness:.04,emissive:0x361888,emissiveIntensity:.2});
-function resize(){const w=stage.clientWidth,h=stage.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,false)}
+function resize(){const w=stage.clientWidth,h=stage.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,true)}
 new ResizeObserver(resize).observe(stage);resize();
 function choose(id){
  selected=id;const r=regions[id];if(!r)return;
@@ -76,13 +76,15 @@ try{
  const m=o.clone();m.geometry=o.geometry.clone();m.material=(cat==='cortex'?purple:lightPurple).clone();m.applyMatrix4(o.matrixWorld);group.add(m)});
  if(!group.children.length)throw Error('No hay estructuras visibles');
  const box=new THREE.Box3().setFromObject(group),center=box.getCenter(new THREE.Vector3()),size=box.getSize(new THREE.Vector3());
- group.position.sub(center);group.scale.setScalar(1.85/Math.max(size.x,size.y,size.z));scene.add(group);brain=group;group.updateMatrixWorld(true);
+ const normalized=new THREE.Group();group.position.copy(center).multiplyScalar(-1);
+ normalized.add(group);normalized.scale.setScalar(1.85/Math.max(size.x,size.y,size.z));
+ scene.add(normalized);brain=normalized;normalized.updateMatrixWorld(true);
  const raycaster=new THREE.Raycaster();
  for(const [id,r] of Object.entries(regions)){
   const dir=new THREE.Vector3(...r[2]).normalize();raycaster.set(dir.clone().multiplyScalar(4),dir.clone().negate());
   const hit=raycaster.intersectObjects(group.children,false)[0];points[id]=hit?hit.point.clone().addScaledVector(dir,.025):dir.clone().multiplyScalar(.78);
  }
- document.getElementById('status').textContent='Modelo cargado. Toca un marcador sobre el cerebro o elige una región.';
+ document.getElementById('status').textContent='Modelo cargado y centrado. Gira el cerebro o toca una etiqueta.';
 }catch(e){document.getElementById('status').textContent='No se pudo cargar el cerebro. Vuelve a abrir la página.';console.error(e)}
 const world=new THREE.Vector3(),projected=new THREE.Vector3(),facing=new THREE.Vector3();
 function frame(){
