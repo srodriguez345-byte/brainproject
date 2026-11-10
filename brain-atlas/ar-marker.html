@@ -6,7 +6,7 @@
 <div id="hint" class="hint">Para ver el cerebro, abre «Ver marcador HIRO» en el computador y apunta la cámara del móvil a ese dibujo.</div>
 <div id="regions" class="regions"></div><div id="info" class="info" hidden><h2 id="name"></h2><p id="desc"></p></div>
 <a-scene embedded vr-mode-ui="enabled:false" arjs="sourceType:webcam;debugUIEnabled:false;detectionMode:mono_and_matrix;" renderer="alpha:true;antialias:true;precision:mediump" loading-screen="enabled:false">
-<a-marker id="marker" preset="hiro" emitevents="true" smooth="true" smooth-count="5" smooth-tolerance="0.01" smooth-threshold="2">
+<a-marker id="marker" preset="hiro" emitevents="true" smooth="true" smooth-count="5" smooth-tolerance="0.01" smooth-threshold="2"><a-box id="test-box" position="0 0.3 0" depth="0.3" height="0.3" width="0.3" material="color:#00ff88;opacity:0.85" visible="true"></a-box>
 <a-entity id="model" position="0 0.55 0" rotation="0 0 0" scale="0.65 0.65 0.65" gltf-model="url(./models/brain.glb)"></a-entity>
 <a-entity light="type:ambient;color:#b8a4ff;intensity:2"></a-entity><a-entity light="type:directional;color:#fff;intensity:2" position="1 2 1"></a-entity>
 </a-marker><a-entity camera></a-entity></a-scene>
@@ -27,8 +27,8 @@ for(const [id,r] of Object.entries(regions)){
  const b=document.createElement('button');b.textContent=r[0];b.onclick=()=>select(id);b.dataset.id=id;document.getElementById('regions').append(b);
 }
 function select(id){const r=regions[id];document.getElementById('name').textContent=r[0];document.getElementById('desc').textContent=r[1];document.getElementById('info').hidden=false;document.querySelectorAll('.regions button').forEach(b=>b.classList.toggle('active',b.dataset.id===id));for(const [key,e] of Object.entries(labels)){e.setAttribute('material','color',key===id?'#e5bcff':'#b29aff');e.setAttribute('scale',key===id?'1.25 1.25 1.25':'1 1 1')}}
-marker.addEventListener('markerFound',()=>hint.textContent='¡Marcador detectado! Muévete alrededor del marcador y toca una región para ver su función.');
-marker.addEventListener('markerLost',()=>hint.textContent='Vuelve a enfocar el marcador HIRO para recuperar el cerebro.');
+marker.addEventListener('markerFound',()=>{hint.textContent='✅ HIRO detectado: debe verse un cubo verde. Si el cerebro no aparece, falla el modelo 3D.'});
+marker.addEventListener('markerLost',()=>{hint.textContent='⚠️ HIRO no detectado. Mantén el dibujo completo y bien iluminado frente a la cámara.'});
 model.addEventListener('model-loaded',()=>{
  const root=model.getObject3D('mesh');if(!root)return;modelRoot=root;
  const THREE=AFRAME.THREE;
@@ -50,7 +50,7 @@ model.addEventListener('model-loaded',()=>{
   label.setAttribute('material',{color:'#6d4cb2',opacity:.88,side:'double',depthTest:false});
   label.setAttribute('look-at','[camera]');holder.appendChild(label);labels[id]=label;
  }
- hint.textContent='Cerebro cargado. Falta detectar HIRO: abre el dibujo en el computador y enfócalo con el teléfono.';
+ hint.textContent='Archivo 3D cargado. Enfoca HIRO: al detectarlo verás un cubo verde y debería verse el cerebro.';
 });
 model.addEventListener('model-error',()=>{hint.textContent='No se pudo cargar el modelo anatómico en RA. Vuelve al visor 3D.'});
 </script></body></html>
