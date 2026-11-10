@@ -2,11 +2,11 @@
 <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
 <script src="https://raw.githack.com/AR-js-org/AR.js/3.4.7/aframe/build/aframe-ar.js"></script>
 <style>*{box-sizing:border-box}body{margin:0;font:14px system-ui;background:#000;color:#fff;overflow:hidden}.hud{position:fixed;top:12px;left:10px;right:10px;z-index:20;pointer-events:none}.hud>*{pointer-events:auto}.bar{background:#180f2ce8;border:1px solid #a98dff;border-radius:13px;padding:10px;display:flex;gap:8px;align-items:center;justify-content:space-between}.bar a,.bar button{color:white;background:#5c3d9a;border:0;border-radius:8px;padding:8px;text-decoration:none;font:inherit}.regions{position:fixed;bottom:10px;left:8px;right:8px;z-index:25;display:flex;gap:6px;overflow-x:auto;padding:6px 2px}.regions button{flex:none;background:#f2eaff;color:#321b5d;border:1px solid #a77dff;border-radius:99px;padding:10px;font-weight:700}.regions button.active{background:#ad8aff}.info{position:fixed;bottom:69px;left:12px;right:12px;z-index:25;background:#180f2bf2;border:1px solid #c4a8ff;border-radius:14px;padding:12px;max-width:440px;margin:auto}.info[hidden]{display:none}.info h2{font-size:17px;margin:0 0 5px}.info p{margin:0}.hint{position:fixed;top:80px;left:12px;right:12px;text-align:center;background:#180f2cdd;padding:9px;border-radius:10px;z-index:15;pointer-events:none}a-scene{position:fixed!important;inset:0}</style></head><body>
-<div class="hud"><div class="bar"><strong>🧠 RA interactiva · Cerebro</strong><a href="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/HIRO.jpg" target="_blank" rel="noopener">Ver marcador HIRO</a><a href="./ar.html">Volver al 3D</a></div></div>
+<div class="hud"><div class="bar"><strong>🧠 RA interactiva · Cerebro <small>v3</small></strong><a href="https://raw.githubusercontent.com/AR-js-org/AR.js/master/data/images/HIRO.jpg" target="_blank" rel="noopener">Ver marcador HIRO</a><a href="./ar.html">Volver al 3D</a></div></div>
 <div id="hint" class="hint">Para ver el cerebro, abre «Ver marcador HIRO» en el computador y apunta la cámara del móvil a ese dibujo.</div>
 <div id="regions" class="regions"></div><div id="info" class="info" hidden><h2 id="name"></h2><p id="desc"></p></div>
 <a-scene embedded vr-mode-ui="enabled:false" arjs="sourceType:webcam;debugUIEnabled:false;detectionMode:mono_and_matrix;" renderer="alpha:true;antialias:true;precision:mediump" loading-screen="enabled:false">
-<a-marker id="marker" preset="hiro" emitevents="true" smooth="true" smooth-count="5" smooth-tolerance="0.01" smooth-threshold="2"><a-box id="test-box" position="0 0.3 0" depth="0.3" height="0.3" width="0.3" material="color:#00ff88;opacity:0.85" visible="true"></a-box>
+<a-marker id="marker" preset="hiro" emitevents="true" smooth="true" smooth-count="5" smooth-tolerance="0.01" smooth-threshold="2"><a-box id="test-box" position="0 0.3 0" depth="0.3" height="0.3" width="0.3" material="color:#00ff88;opacity:0.85" visible="false"></a-box>
 <a-entity id="model" position="0 0.18 0" rotation="0 0 0" scale="1 1 1" gltf-model="url(./models/brain.glb)"></a-entity>
 <a-entity light="type:ambient;color:#b8a4ff;intensity:2"></a-entity><a-entity light="type:directional;color:#fff;intensity:2" position="1 2 1"></a-entity>
 </a-marker><a-entity camera></a-entity></a-scene>
@@ -27,35 +27,35 @@ for(const [id,r] of Object.entries(regions)){
  const b=document.createElement('button');b.textContent=r[0];b.onclick=()=>select(id);b.dataset.id=id;document.getElementById('regions').append(b);
 }
 function select(id){const r=regions[id];document.getElementById('name').textContent=r[0];document.getElementById('desc').textContent=r[1];document.getElementById('info').hidden=false;document.querySelectorAll('.regions button').forEach(b=>b.classList.toggle('active',b.dataset.id===id));for(const [key,e] of Object.entries(labels)){e.setAttribute('material','color',key===id?'#e5bcff':'#b29aff');e.setAttribute('scale',key===id?'1.25 1.25 1.25':'1 1 1')}}
-marker.addEventListener('markerFound',()=>{hint.textContent='✅ HIRO detectado: debe verse un cubo verde. Si el cerebro no aparece, falla el modelo 3D.'});
+marker.addEventListener('markerFound',()=>{hint.textContent='✅ HIRO detectado. Cerebro morado en RA (versión 3).'});
 marker.addEventListener('markerLost',()=>{hint.textContent='⚠️ HIRO no detectado. Mantén el dibujo completo y bien iluminado frente a la cámara.'});
 model.addEventListener('model-loaded',()=>{
  const root=model.getObject3D('mesh');if(!root)return;
  const THREE=AFRAME.THREE;
- // Preserve geometry and transforms from the GLB, but remove non-brain parts.
- root.updateMatrixWorld(true);
- const filtered=new THREE.Group();let count=0;
+ let count=0;
  root.traverse(o=>{
   if(!o.isMesh)return;
   let node=o,cat='';
-  while(node&&node!==root){if(node.userData&&node.userData.bx_cat){cat=node.userData.bx_cat;break}node=node.parent}
-  if(!['cortex','cerebellum','brainstem'].includes(cat))return;
-  const mesh=o.clone();mesh.geometry=o.geometry;
-  mesh.material=new THREE.MeshStandardMaterial({color:cat==='cortex'?0x8464ed:0x9d82f8,roughness:.46,metalness:.04,emissive:0x31117a,emissiveIntensity:.22,side:THREE.DoubleSide});
-  mesh.matrixAutoUpdate=true;mesh.position.set(0,0,0);mesh.rotation.set(0,0,0);mesh.scale.set(1,1,1);
-  const transform=new THREE.Matrix4().copy(o.matrixWorld).premultiply(root.matrixWorld.clone().invert());
-  mesh.applyMatrix4(transform);filtered.add(mesh);count++;
+  while(node){if(node.userData&&node.userData.bx_cat){cat=node.userData.bx_cat;break}node=node.parent}
+  o.visible=['cortex','cerebellum','brainstem'].includes(cat);
+  if(!o.visible)return;
+  count++;
+  o.material=new THREE.MeshStandardMaterial({color:cat==='cortex'?0x8464ed:0xa08af5,roughness:.48,metalness:.02,emissive:0x24105c,emissiveIntensity:.18,side:THREE.DoubleSide});
  });
- if(!count){hint.textContent='No se encontraron las estructuras del cerebro. Revisaremos el archivo 3D.';return}
- filtered.updateMatrixWorld(true);
- const bounds=new THREE.Box3().setFromObject(filtered);
- const size=bounds.getSize(new THREE.Vector3()),center=bounds.getCenter(new THREE.Vector3());
- const k=.7/Math.max(size.x,size.y,size.z);
- const centered=new THREE.Group();filtered.position.copy(center).multiplyScalar(-1);centered.add(filtered);centered.scale.setScalar(k);
- const parent=root.parent;parent.remove(root);parent.add(centered);
- modelRoot=centered;
+ if(!count){hint.textContent='No se encontraron partes del cerebro en el archivo 3D.';return}
+ root.updateMatrixWorld(true);
+ const box=new THREE.Box3();
+ root.traverse(o=>{if(o.isMesh&&o.visible){o.geometry.computeBoundingBox();box.expandByObject(o)}});
+ const size=box.getSize(new THREE.Vector3()),center=box.getCenter(new THREE.Vector3());
+ const max=Math.max(size.x,size.y,size.z);
+ if(!Number.isFinite(max)||max<=0){hint.textContent='Error de dimensiones del modelo 3D';return}
+ // Keep the original GLB hierarchy: reparenting individual meshes destroys anatomical transforms.
+ const wrapper=new THREE.Group(),parent=root.parent;
+ parent.remove(root);wrapper.add(root);parent.add(wrapper);
+ const k=.58/max;wrapper.scale.setScalar(k);wrapper.position.copy(center).multiplyScalar(-k);
+ wrapper.updateMatrixWorld(true);modelRoot=wrapper;
  document.getElementById('test-box').setAttribute('visible','false');
- hint.textContent='Cerebro anatómico cargado ('+count+' estructuras). Enfoca HIRO para verlo.';
+ hint.textContent='Versión RA 3 · Cerebro anatómico listo ('+count+' piezas). Enfoca HIRO.';
 });
 model.addEventListener('model-error',()=>{hint.textContent='No se pudo cargar el modelo anatómico en RA. Vuelve al visor 3D.'});
 </script></body></html>
