@@ -1,6 +1,6 @@
 <!doctype html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Cerebro interactivo · Brain Project</title>
+<title>Cerebro interactivo · Brain Project</title><script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
 <style>
 *{box-sizing:border-box}body{margin:0;background:#000;color:#f4edff;font:15px system-ui,sans-serif}
 header{padding:12px 16px;max-width:1180px;margin:auto}h1{font-size:1.3rem;margin:5px 0}p{line-height:1.45}
@@ -21,16 +21,17 @@ aside{background:#110b20;border:1px solid #473569;border-radius:17px;padding:14p
 #info{margin-top:12px;border-top:1px solid #46375d;padding-top:10px;min-height:65px}
 #status,.note{color:#c3b5d6;font-size:12px}#status{padding:0 4px}
 @media(max-width:740px){.layout{grid-template-columns:1fr}.stage{height:59vh;min-height:380px}#regions{grid-template-columns:1fr 1fr}aside{padding:12px}.marker{font-size:10px;padding:5px 7px}}
-</style></head><body>
+.ar-model{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden}</style></head><body>
 <header><h1>🧠 Cerebro violeta interactivo</h1><p>Gira el cerebro y toca las etiquetas sobre sus regiones. Activa la cámara para verlo sobre tu entorno sin perder los botones.</p></header>
 <main class="layout"><section><div class="stage" id="stage"><video id="feed" autoplay muted playsinline></video><div id="view"></div><div id="markers"></div><article id="card" hidden><button id="close" aria-label="Cerrar">×</button><h2 id="card-title"></h2><p id="card-text"></p></article></div>
-<div class="controls"><button id="camera">📷 Activar cámara interactiva</button><button id="reset">↺ Vista general</button></div><p id="status" role="status">Cargando modelo anatómico…</p></section>
-<aside><h2>Explorar regiones</h2><div id="regions"></div><div id="info" aria-live="polite">Selecciona una región para verla y leer su función.</div><p class="note">Este modo mantiene las etiquetas sobre el cerebro incluso con la cámara encendida. No fija el modelo a una superficie real.</p></aside></main>
+<div class="controls"><button id="camera">📷 Activar cámara interactiva</button><button id="reset">↺ Vista general</button><button id="ar" disabled>🧠 Ver en realidad aumentada real</button></div><p id="status" role="status">Cargando modelo anatómico…</p></section>
+<aside><h2>Explorar regiones</h2><div id="regions"></div><div id="info" aria-live="polite">Selecciona una región para verla y leer su función.</div><p class="note">Este modo mantiene las etiquetas sobre el cerebro incluso con la cámara encendida. No fija el modelo a una superficie real.</p></aside></main><model-viewer id="ar-model" class="ar-model" ar ar-modes="quick-look scene-viewer webxr" camera-controls></model-viewer>
 <script type="module">
 import * as THREE from 'https://esm.sh/three@0.160.1';
 import {OrbitControls} from 'https://esm.sh/three@0.160.1/examples/jsm/controls/OrbitControls.js';
 import {GLTFLoader} from 'https://esm.sh/three@0.160.1/examples/jsm/loaders/GLTFLoader.js';
 import {DRACOLoader} from 'https://esm.sh/three@0.160.1/examples/jsm/loaders/DRACOLoader.js';
+import {GLTFExporter} from 'https://esm.sh/three@0.160.1/examples/jsm/exporters/GLTFExporter.js';
 const regions={
  frontal:['Lóbulo frontal','Planificación, decisiones y control de movimientos voluntarios.',[-.66,.23,.60]],
  parietal:['Lóbulo parietal','Procesa el tacto y ayuda a orientarnos en el espacio.',[0,.65,.28]],
@@ -51,7 +52,7 @@ const key=new THREE.DirectionalLight(0xffffff,2.6);key.position.set(2,4,5);scene
 const rim=new THREE.DirectionalLight(0x9b72ff,2.1);rim.position.set(-4,1,-3);scene.add(rim);
 const draco=new DRACOLoader();draco.setDecoderPath('./vendor/draco/');
 const loader=new GLTFLoader();loader.setDRACOLoader(draco);
-const points={},buttons={};let brain=null,selected=null,moveTo=null;
+const points={},buttons={};let brain=null,selected=null,moveTo=null;const arViewer=document.getElementById('ar-model'),arButton=document.getElementById('ar');let arReady=false;arButton.onclick=async()=>{if(!arReady)return;try{await arViewer.activateAR()}catch(e){document.getElementById('status').textContent='No se pudo iniciar RA. Abre la página en Safari o Chrome y verifica la compatibilidad.';console.error(e)}};
 const purple=new THREE.MeshStandardMaterial({color:0x8061f1,roughness:.43,metalness:.08,emissive:0x351486,emissiveIntensity:.27});
 const lightPurple=new THREE.MeshStandardMaterial({color:0x9878fa,roughness:.53,metalness:.04,emissive:0x361888,emissiveIntensity:.2});
 function resize(){const w=stage.clientWidth,h=stage.clientHeight;camera.aspect=w/h;camera.updateProjectionMatrix();renderer.setSize(w,h,true)}
@@ -84,7 +85,15 @@ try{
   const dir=new THREE.Vector3(...r[2]).normalize();raycaster.set(dir.clone().multiplyScalar(4),dir.clone().negate());
   const hit=raycaster.intersectObjects(group.children,false)[0];points[id]=hit?hit.point.clone().addScaledVector(dir,.025):dir.clone().multiplyScalar(.78);
  }
- document.getElementById('status').textContent='Modelo cargado y centrado. Gira el cerebro o toca una etiqueta.';
+ document.getElementById('status').textContent='Modelo 3D cargado. Preparando realidad aumentada…';
+ try{
+  const exporter=new GLTFExporter();
+  const binary=await new Promise((resolve,reject)=>exporter.parse(normalized,resolve,reject,{binary:true}));
+  arViewer.src=URL.createObjectURL(new Blob([binary],{type:'model/gltf-binary'}));
+  await customElements.whenDefined('model-viewer');
+  await new Promise((resolve,reject)=>{if(arViewer.loaded)return resolve();arViewer.addEventListener('load',resolve,{once:true});arViewer.addEventListener('error',reject,{once:true})});
+  arReady=true;arButton.disabled=false;document.getElementById('status').textContent='Cerebro listo. Explora las regiones o pulsa «Ver en realidad aumentada real».';
+ }catch(err){document.getElementById('status').textContent='El cerebro 3D funciona, pero no se pudo preparar el archivo para RA.';console.error(err)}
 }catch(e){document.getElementById('status').textContent='No se pudo cargar el cerebro. Vuelve a abrir la página.';console.error(e)}
 const world=new THREE.Vector3(),projected=new THREE.Vector3(),facing=new THREE.Vector3();
 function frame(){
