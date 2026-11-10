@@ -99,10 +99,10 @@
       const panel = document.getElementById('ar-panel');
       const frame = document.getElementById('ar-frame');
       document.getElementById('open-ar').addEventListener('click', () => {
-        if (!frame.src) frame.src = './ar.html?v=neon1';
+        frame.src = './ar.html?v=neon2-' + Date.now();
         panel.hidden = false;
       });
-      document.getElementById('close-ar').addEventListener('click', () => { panel.hidden = true; });
+      document.getElementById('close-ar').addEventListener('click', () => { panel.hidden = true; frame.removeAttribute('src'); });
     })();
   </script>
 </body>
