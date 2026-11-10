@@ -123,7 +123,7 @@ function App() {
   // ---- state ----
   const [search, setSearch] = React.useState('');
   const [searchSide, setSearchSide] = React.useState('both');  // filter results to one side
-  const [hemisphere, setHemisphere] = React.useState('left');
+  const [hemisphere, setHemisphere] = React.useState('both');
   const [cortexOpacity, setCortexOpacity] = React.useState(1);
   const [layerOn, setLayerOn] = React.useState(() => { const o = {}; CAT_ORDER.forEach(c => o[c] = ['cortex', 'cerebellum', 'brainstem'].includes(c)); return o; });
   const [expanded, setExpanded] = React.useState(() => new Set());
@@ -291,7 +291,7 @@ function App() {
   const exitVR = () => { const s = sceneRef.current; if (s) s.vr.exit(); };
   const reset = () => {
     setActivePreset('whole'); applyPreset(PRESETS[0], false);
-    setHemisphere('left'); setIsolatedIds(null); setSearch(''); setSelectedId(null); setFocusedId(null);
+    setHemisphere('both'); setIsolatedIds(null); setSearch(''); setSelectedId(null); setFocusedId(null);
     sceneRef.current && sceneRef.current.reset();
   };
 
