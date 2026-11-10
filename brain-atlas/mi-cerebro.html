@@ -25,6 +25,10 @@ button:focus-visible{outline:2px solid #e8b5a6;outline-offset:3px}
 #status{position:absolute;z-index:2;top:112px;left:50%;transform:translateX(-50%);color:#f0c9bd;font-size:11px;text-align:center;width:90%;letter-spacing:.03em}
 .corner{position:absolute;z-index:1;right:24px;bottom:28px;color:#c5cbd6a0;font-size:9px;letter-spacing:.16em;text-transform:uppercase}
 @media(max-width:560px){header{padding:18px}.hint{bottom:100px;font-size:10px}.controls{bottom:20px;gap:5px;padding:7px}.controls button{min-width:38px;height:40px;padding:0 9px}.corner{display:none}#status{top:104px}}
+
+.info{position:absolute;z-index:4;right:20px;top:120px;width:min(330px,calc(100vw - 40px));max-height:calc(100vh - 250px);overflow:auto;padding:18px;background:#101a2be8;border:1px solid #f2d4c238;border-radius:17px;box-shadow:0 15px 45px #0008;backdrop-filter:blur(18px)}
+.info h2{font:500 23px Georgia,serif;margin:0 0 9px;color:#f4d4c9}.info p{font-size:12px;line-height:1.55;color:#e0e3eb;margin:8px 0}.info strong{color:#f5c9b8}.regions{display:flex;flex-wrap:wrap;gap:6px;margin-top:13px}.regions button{font-size:11px;min-width:auto;height:31px;padding:0 9px}.regions button.active{border-color:#f4b8a5;background:#72565b}.small{font-size:10px!important;color:#b6bfce!important}
+@media(max-width:700px){.info{top:auto;bottom:94px;left:12px;right:12px;width:auto;max-height:36vh;padding:12px}.info h2{font-size:18px}.info p{font-size:11px;margin:5px 0}.hint{display:none}.controls{bottom:12px}.regions{gap:4px}.regions button{height:27px;font-size:10px}}
 </style>
 </head>
 <body>
@@ -33,6 +37,7 @@ button:focus-visible{outline:2px solid #e8b5a6;outline-offset:3px}
 <div id="status">Preparando modelo 3D…</div>
 <div class="hint">Arrastra para girar · Desliza o usa + / − para acercar</div>
 <div class="controls"><button id="minus" aria-label="Alejar" title="Alejar">−</button><button id="spin">Pausar giro</button><button id="plus" aria-label="Acercar" title="Acercar">+</button><button id="reset">Reiniciar</button></div>
+<aside class="info" aria-live="polite"><h2 id="region-title">Explora las regiones cerebrales</h2><p id="region-location">Selecciona una región para conocer su ubicación, sus funciones y qué puede suceder si se ve afectada.</p><p id="region-function"></p><p id="region-effect"></p><div class="regions" id="regions"></div><p class="small">Modelo anatómico educativo · No destinado a diagnóstico clínico.</p></aside>
 <div class="corner">Vista interactiva · 3D</div>
 <script src="https://unpkg.com/three@0.137.0/build/three.min.js"></script>
 <script src="https://unpkg.com/three@0.137.0/examples/js/loaders/GLTFLoader.js"></script>
@@ -44,24 +49,44 @@ renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));
 renderer.setSize(innerWidth,innerHeight);
 renderer.outputEncoding=THREE.sRGBEncoding;
 renderer.toneMapping=THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure=1.15;
+renderer.toneMappingExposure=1.02;
 renderer.setClearColor(0x000000,0);
 const scene=new THREE.Scene();
 const camera=new THREE.PerspectiveCamera(38,innerWidth/innerHeight,.01,100);
 camera.position.set(0,0,4.4);
-scene.add(new THREE.HemisphereLight(0xffeee9,0x39303a,1.65));
-const key=new THREE.DirectionalLight(0xffe2d7,2.5);key.position.set(3,5,6);scene.add(key);
-const fill=new THREE.DirectionalLight(0xc2d9ff,1.25);fill.position.set(-5,1,-4);scene.add(fill);
-const rim=new THREE.DirectionalLight(0xffa18f,1.7);rim.position.set(0,4,-5);scene.add(rim);
+scene.add(new THREE.HemisphereLight(0xffeee9,0x39303a,1.15));
+const key=new THREE.DirectionalLight(0xffe2d7,1.75);key.position.set(3,5,6);scene.add(key);
+const fill=new THREE.DirectionalLight(0xc2d9ff,.7);fill.position.set(-5,1,-4);scene.add(fill);
+const rim=new THREE.DirectionalLight(0xffa18f,.9);rim.position.set(0,4,-5);scene.add(rim);
 const soft=new THREE.PointLight(0xffc6b8,.55,12);soft.position.set(0,-3,3);scene.add(soft);
 const root=new THREE.Group();scene.add(root);
+
+const regions={
+ frontal:['Lóbulo frontal','Parte anterior del cerebro, detrás de la frente.','Participa en la planificación, la toma de decisiones, el movimiento voluntario y la regulación de la conducta.','Puede causar dificultades para planificar, moverse o regular el comportamiento.'],
+ parietal:['Lóbulo parietal','Zona superior y posterior al lóbulo frontal.','Procesa información del tacto, la posición corporal y la orientación espacial.','Puede alterar la sensibilidad o la percepción del espacio.'],
+ temporal:['Lóbulo temporal','Región lateral, aproximadamente a la altura de las sienes.','Participa en la audición, la memoria y la comprensión del lenguaje.','Puede afectar la memoria o la comprensión del habla.'],
+ occipital:['Lóbulo occipital','Parte posterior del cerebro.','Procesa la información visual.','Puede producir alteraciones en la visión.'],
+ cerebellum:['Cerebelo','Parte posterior e inferior del encéfalo.','Coordina los movimientos, el equilibrio y la precisión motora.','Puede ocasionar problemas de equilibrio y coordinación.'],
+ brainstem:['Tronco encefálico','Base del encéfalo, conectado con la médula espinal.','Interviene en funciones vitales como la respiración y la regulación del estado de alerta.','Puede comprometer funciones automáticas esenciales.']
+};
+let selected=null,brainModel=null;
+function selectRegion(key){
+ selected=key;const r=regions[key];
+ document.getElementById('region-title').textContent=r[0];
+ document.getElementById('region-location').innerHTML='<strong>Ubicación:</strong> '+r[1];
+ document.getElementById('region-function').innerHTML='<strong>Función:</strong> '+r[2];
+ document.getElementById('region-effect').innerHTML='<strong>Si se afecta:</strong> '+r[3];
+ document.querySelectorAll('#regions button').forEach(b=>b.classList.toggle('active',b.dataset.region===key));
+ if(brainModel){brainModel.traverse(obj=>{if(!obj.isMesh)return;const name=(obj.name+' '+(obj.userData?.bx_label||'')+' '+(obj.userData?.bx_region||'')).toLowerCase();const match=key==='brainstem'?/brainstem|medulla|pons|midbrain/.test(name):key==='cerebellum'?/cerebell/.test(name):new RegExp(key).test(name);const materials=Array.isArray(obj.material)?obj.material:[obj.material];materials.forEach(m=>{if(!m||!m.color)return;if(!m.userData.originalColor)m.userData.originalColor=m.color.clone();m.color.copy(m.userData.originalColor);if(match)m.color.lerp(new THREE.Color('#d99287'),.28);});});}
+}
+const regionList=document.getElementById('regions');Object.keys(regions).forEach(key=>{const b=document.createElement('button');b.textContent=regions[key][0];b.dataset.region=key;b.onclick=()=>selectRegion(key);regionList.appendChild(b);});
 let rotating=true,drag=false,lastX=0,lastY=0,zoom=4.4,modelReady=false;
 new THREE.GLTFLoader().load('./models/sara-brain.glb',g=>{
- const model=g.scene;root.add(model);
+ const model=g.scene;brainModel=model;root.add(model);
  model.traverse(obj=>{
   if(obj.isMesh){
    const mats=Array.isArray(obj.material)?obj.material:[obj.material];
-   mats.forEach(m=>{if(m&&m.isMeshStandardMaterial){m.roughness=Math.max(m.roughness||0,.72);m.metalness=0;m.needsUpdate=true;}});
+   mats.forEach(m=>{if(m&&m.isMeshStandardMaterial){m.roughness=.9;m.metalness=0;m=m; if(m.color){m.color.lerp(new THREE.Color('#d9a99d'),.25);}m.needsUpdate=true;}});
   }
  });
  const box=new THREE.Box3().setFromObject(model);
@@ -69,7 +94,7 @@ new THREE.GLTFLoader().load('./models/sara-brain.glb',g=>{
  model.position.sub(center);
  const max=Math.max(size.x,size.y,size.z)||1;
  model.scale.setScalar(2.3/max);
- modelReady=true;
+ modelReady=true;if(selected)selectRegion(selected);
  status.textContent='Modelo cargado · Explora libremente';
 },undefined,e=>{
  console.error(e);
