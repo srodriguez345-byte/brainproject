@@ -7,25 +7,25 @@ const regions={frontal:['Lóbulo frontal','#ffb14a','Planificación, decisiones 
 const viewer=document.getElementById('brain');const scene=new THREE.Scene();
 const blue=new THREE.MeshStandardMaterial({color:0x0b8dff,roughness:.3,metalness:.2,emissive:0x004cdb,emissiveIntensity:.42});
 const lightBlue=new THREE.MeshStandardMaterial({color:0x159cff,roughness:.43,metalness:.15,emissive:0x0647df,emissiveIntensity:.26});
-const loader=new GLTFLoader();
-const source='https://raw.githubusercontent.com/Joeboukhalil/3D-Brain-Viewer/main/brain_realistic_free.glb';
-let original;
-try { original=await loader.loadAsync(source); } catch(error) { document.getElementById('status').textContent='No se pudo cargar el modelo externo. Comprueba tu conexión y vuelve a intentarlo.'; throw error; }
+const draco=new DRACOLoader();draco.setDecoderPath('./vendor/draco/');
+const loader=new GLTFLoader();loader.setDRACOLoader(draco);
+const original=await loader.loadAsync('./models/brain.glb');
 const kept=new THREE.Group();
 original.scene.updateMatrixWorld(true);
 original.scene.traverse(o=>{
  if(!o.isMesh)return;
+ const cat=o.userData?.bx_cat||o.parent?.userData?.bx_cat||'';
+ if(!['cortex','cerebellum','brainstem'].includes(cat))return;
  const copy=o.clone();copy.geometry=o.geometry.clone();
- copy.material=blue.clone();
+ copy.material=(cat==='cortex'?blue:lightBlue).clone();
  copy.applyMatrix4(o.matrixWorld);kept.add(copy);
 });
-if(!kept.children.length)throw Error('El modelo externo no contiene superficies visibles');
+if(!kept.children.length)throw Error('No se encontraron estructuras del cerebro en el archivo local');
 const bounds=new THREE.Box3().setFromObject(kept),center=bounds.getCenter(new THREE.Vector3()),size=bounds.getSize(new THREE.Vector3());
-kept.position.sub(center);
-kept.scale.setScalar(1.8/Math.max(size.x,size.y,size.z));
+kept.position.sub(center);kept.scale.setScalar(1.8/Math.max(size.x,size.y,size.z));
 scene.add(kept);
 const list=document.getElementById('regions');for(const [id,r] of Object.entries(regions)){const b=document.createElement('button');b.className='region';b.dataset.id=id;b.setAttribute('aria-pressed','false');b.innerHTML='<span class="dot" style="background:'+r[1]+'"></span>'+r[0];b.onclick=()=>select(id);list.append(b)}
 function select(id){const r=regions[id];document.querySelectorAll('.region').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.id===id)));document.getElementById('info').innerHTML='<h3 style="color:'+r[1]+'">'+r[0]+'</h3><p>'+r[2]+'</p>'}window.selectBrainRegion=select;
 for(const [id,r] of Object.entries(regions)){const b=document.createElement('button');b.className='hotspot';b.slot='hotspot-'+id;b.style.background=r[1];b.style.color=r[1];b.dataset.position=r[3].map(n=>n+'m').join(' ');b.dataset.normal='0m 1m 0m';b.setAttribute('aria-label',r[0]);b.onclick=()=>select(id);viewer.append(b)}
 try{const exporter=new GLTFExporter();const blob=await new Promise((resolve,reject)=>exporter.parse(scene,(array)=>resolve(new Blob([array],{type:'model/gltf-binary'})),reject,{binary:true}));const url=URL.createObjectURL(blob);viewer.src=url;document.getElementById('status').textContent='Modelo 3D cargado. Puedes girarlo y seleccionar regiones.'}catch(e){document.getElementById('status').textContent='No se pudo preparar el modelo 3D. Recarga la página.';console.error(e)}
-</script><footer style="padding:12px;color:#b9d2e8;font-size:12px">Modelo anatómico: Brain Realistic FREE, darklord3d (CC BY 4.0). Integración educativa de Brain Project.</footer></body></html>
+</script><footer style="padding:12px;color:#b9d2e8;font-size:12px">Modelo anatómico del atlas Brain Project; se muestran corteza, cerebelo y tronco encefálico.</footer></body></html>
