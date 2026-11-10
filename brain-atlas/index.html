@@ -105,5 +105,15 @@
       document.getElementById('close-ar').addEventListener('click', () => { panel.hidden = true; frame.removeAttribute('src'); });
     })();
   </script>
+<style>
+#atlas-panel-toggle{position:fixed;left:14px;bottom:82px;z-index:99990;border:1px solid #a8d7ff;background:#15385c;color:white;border-radius:999px;padding:10px 15px;font:600 13px system-ui;box-shadow:0 4px 14px #0007}
+body.atlas-compact .atlas-resizable{width:180px!important;max-width:50vw!important;max-height:44vh!important;overflow:auto!important}
+body.atlas-compact .atlas-resizable *{font-size:11px!important}
+</style>
+<button id="atlas-panel-toggle" type="button" aria-pressed="false">↔ Reducir panel</button>
+<script>
+(()=>{const btn=document.getElementById('atlas-panel-toggle');function findPanel(){const candidates=[...document.querySelectorAll('#root .glass')].filter(e=>{const r=e.getBoundingClientRect();return r.width>170&&r.height>250&&r.left<innerWidth*.55&&r.top<innerHeight*.55});return candidates.sort((a,b)=>b.getBoundingClientRect().height-a.getBoundingClientRect().height)[0]}
+btn.addEventListener('click',()=>{const compact=!document.body.classList.contains('atlas-compact');document.body.classList.toggle('atlas-compact',compact);document.querySelectorAll('.atlas-resizable').forEach(e=>e.classList.remove('atlas-resizable'));const panel=findPanel();if(panel)panel.classList.add('atlas-resizable');btn.textContent=compact?'↔ Ampliar panel':'↔ Reducir panel';btn.setAttribute('aria-pressed',String(compact))});})();
+</script>
 </body>
 </html>
