@@ -7,7 +7,7 @@
 <div id="regions" class="regions"></div><div id="info" class="info" hidden><h2 id="name"></h2><p id="desc"></p></div>
 <a-scene embedded vr-mode-ui="enabled:false" arjs="sourceType:webcam;debugUIEnabled:false;detectionMode:mono_and_matrix;" renderer="alpha:true;antialias:true;precision:mediump" loading-screen="enabled:false">
 <a-marker id="marker" preset="hiro" emitevents="true" smooth="true" smooth-count="5" smooth-tolerance="0.01" smooth-threshold="2"><a-box id="test-box" position="0 0.3 0" depth="0.3" height="0.3" width="0.3" material="color:#00ff88;opacity:0.85" visible="true"></a-box>
-<a-entity id="model" position="0 0.55 0" rotation="0 0 0" scale="0.65 0.65 0.65" gltf-model="url(./models/brain.glb)"></a-entity>
+<a-entity id="model" position="0 0.18 0" rotation="0 0 0" scale="1 1 1" gltf-model="url(./models/brain.glb)"></a-entity>
 <a-entity light="type:ambient;color:#b8a4ff;intensity:2"></a-entity><a-entity light="type:directional;color:#fff;intensity:2" position="1 2 1"></a-entity>
 </a-marker><a-entity camera></a-entity></a-scene>
 <script>
@@ -37,20 +37,20 @@ model.addEventListener('model-loaded',()=>{
  const content=new THREE.Group();content.name='brain-normalized';
  const meshes=[];root.traverse(o=>{if(o.isMesh)meshes.push(o)});
  for(const m of meshes){const cat=m.userData?.bx_cat||m.parent?.userData?.bx_cat||'';
- if(cat==='cranial_nerves'||cat==='nerves'||cat==='vessels')m.visible=false;
+ if(!['cortex','cerebellum','brainstem'].includes(cat))m.visible=false;
  if(cat==='cortex'||cat==='cerebellum'||cat==='brainstem'){m.material=new THREE.MeshStandardMaterial({color:cat==='cortex'?0x8464ed:0x9d82f8,roughness:.42,metalness:.08,emissive:0x31117a,emissiveIntensity:.25})}}
  // Keep the brain in the marker's local coordinate system.
- root.position.sub(center);const k=1.5/Math.max(size.x,size.y,size.z);root.scale.setScalar(k);
- const holder=document.createElement('a-entity');holder.setAttribute('position','0 0.55 0');marker.appendChild(holder);
+ root.position.sub(center);const k=.65/Math.max(size.x,size.y,size.z);root.scale.setScalar(k);
+ const holder=document.createElement('a-entity');holder.setAttribute('position','0 0.18 0');marker.appendChild(holder);
  for(const [id,r] of Object.entries(regions)){
   const dir=new THREE.Vector3(...r[2]).normalize();
-  const label=document.createElement('a-entity');label.setAttribute('position',dir.clone().multiplyScalar(.76).toArray().join(' '));
-  label.setAttribute('text',{value:r[0],align:'center',color:'#ffffff',width:1.5,wrapCount:18});
-  label.setAttribute('geometry',{primitive:'plane',width:.63,height:.15});
+  const label=document.createElement('a-entity');label.setAttribute('position',dir.clone().multiplyScalar(.34).toArray().join(' '));
+  label.setAttribute('text',{value:r[0],align:'center',color:'#ffffff',width:.85,wrapCount:18});
+  label.setAttribute('geometry',{primitive:'plane',width:.35,height:.09});
   label.setAttribute('material',{color:'#6d4cb2',opacity:.88,side:'double',depthTest:false});
   label.setAttribute('look-at','[camera]');holder.appendChild(label);labels[id]=label;
  }
- hint.textContent='Archivo 3D cargado. Enfoca HIRO: al detectarlo verás un cubo verde y debería verse el cerebro.';
+ hint.textContent='Cerebro ajustado a tamaño reducido. Enfoca HIRO para verlo centrado sobre el marcador.';
 });
 model.addEventListener('model-error',()=>{hint.textContent='No se pudo cargar el modelo anatómico en RA. Vuelve al visor 3D.'});
 </script></body></html>
