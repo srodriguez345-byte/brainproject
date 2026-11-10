@@ -1,0 +1,26 @@
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Brain Project · RA sin marcador</title>
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+<style>*{box-sizing:border-box}body{margin:0;background:#050307;color:#f5edff;font:15px system-ui,sans-serif}header{padding:15px 16px 8px;max-width:960px;margin:auto}h1{font-size:1.35rem;margin:4px 0 8px}p{line-height:1.5}.wrap{max-width:960px;margin:auto;padding:8px 12px 24px;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(250px,1fr);gap:14px}model-viewer{display:block;width:100%;height:min(65vh,630px);min-height:400px;background:#000;border:1px solid #644b94;border-radius:18px;--poster-color:#000}aside{background:#160e28;border:1px solid #604781;border-radius:16px;padding:14px}.region-list{display:grid;grid-template-columns:1fr 1fr;gap:8px}.region-list button{padding:11px 7px;border:1px solid #9475c5;background:#342052;color:#fff;border-radius:10px;text-align:left}.region-list button[aria-pressed=true]{background:#7753b6}.hotspot{border:1px solid #ddc6ff;border-radius:99px;background:#f3eaff;color:#321454;padding:7px 10px;font:700 12px system-ui;white-space:nowrap;box-shadow:0 2px 12px #0009}.hotspot[aria-pressed=true]{background:#b38cff}.ar-button{position:absolute;bottom:16px;left:50%;transform:translateX(-50%);border:0;border-radius:99px;background:#a684ef;color:#160e29;padding:14px 20px;font-weight:800;white-space:nowrap;box-shadow:0 3px 18px #000b}.status{font-size:13px;color:#d4c3ec;margin:9px 0}.info{border-top:1px solid #54416e;margin-top:12px;padding-top:12px;min-height:90px}.info h2{font-size:1rem;margin:0 0 6px;color:#decaff}.info p{margin:0}.nav{color:#d7c3ff}.note{font-size:12px;color:#c4b4d8}@media(max-width:700px){.wrap{grid-template-columns:1fr}model-viewer{height:55vh;min-height:390px}aside{padding:12px}}</style></head><body>
+<header><a class="nav" href="./">← Volver al atlas</a><h1>🧠 Cerebro 3D y realidad aumentada sin marcador</h1><p>Explora las regiones y después pulsa «Ver en mi espacio». No necesitas imprimir HIRO ni instalar otra aplicación.</p></header>
+<main class="wrap"><section>
+<model-viewer id="brain" src="./models/brain.glb" alt="Modelo anatómico tridimensional del cerebro" ar ar-modes="webxr scene-viewer quick-look" ar-placement="floor" camera-controls touch-action="pan-y" auto-rotate rotation-per-second="8deg" shadow-intensity=".5" exposure="1.2" environment-image="neutral" camera-orbit="35deg 75deg auto" min-camera-orbit="auto auto 1m" max-camera-orbit="auto auto 10m">
+<button slot="ar-button" class="ar-button">📷 Ver en mi espacio (RA)</button>
+</model-viewer>
+<p class="status" id="status">Cargando cerebro 3D…</p><p class="note">En iPhone, la RA abre el visor de Apple; en Android compatible, WebXR o Scene Viewer. Las etiquetas de la página no aparecen en los visores nativos.</p></section>
+<aside><h2>Partes del cerebro</h2><div id="regions" class="region-list"></div><div class="info" id="info">Toca una región para leer su función y orientar la vista hacia ella.</div></aside></main>
+<script>
+const data={
+frontal:['Lóbulo frontal','Interviene en la planificación, la toma de decisiones y los movimientos voluntarios.','55deg 75deg auto','0m 0.2m 0.4m'],
+parietal:['Lóbulo parietal','Procesa sensaciones como el tacto y ayuda con la orientación espacial.','25deg 35deg auto','0m 0.5m 0m'],
+temporal:['Lóbulo temporal','Participa en la audición, la memoria y la comprensión del lenguaje.','85deg 85deg auto','-0.3m -0.2m 0.4m'],
+occipital:['Lóbulo occipital','Procesa principalmente la información visual.','-110deg 75deg auto','0.4m 0.1m 0m'],
+cerebelo:['Cerebelo','Contribuye a la coordinación de los movimientos y al equilibrio.','-125deg 110deg auto','0.25m -0.5m 0m'],
+tronco:['Tronco encefálico','Conecta el encéfalo con la médula espinal y participa en funciones automáticas.','-45deg 120deg auto','0m -0.6m 0m'],
+izquierdo:['Hemisferio izquierdo','Participa en distintas funciones, incluido el lenguaje. Los dos hemisferios trabajan juntos.','90deg 70deg auto','-0.4m 0.2m 0m'],
+derecho:['Hemisferio derecho','Participa en distintas funciones, incluida la atención espacial. Los dos hemisferios trabajan juntos.','-90deg 70deg auto','0.4m 0.2m 0m']};
+const viewer=document.getElementById('brain'),list=document.getElementById('regions'),info=document.getElementById('info');
+for(const [id,[name]] of Object.entries(data)){const b=document.createElement('button');b.textContent=name;b.dataset.id=id;b.setAttribute('aria-pressed','false');b.onclick=()=>choose(id);list.append(b)}
+function choose(id){const [name,desc,orbit,target]=data[id];viewer.autoRotate=false;viewer.cameraOrbit=orbit;viewer.cameraTarget=target;info.innerHTML='<h2>'+name+'</h2><p>'+desc+'</p>';list.querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.id===id)))}
+viewer.addEventListener('load',()=>{document.getElementById('status').textContent='Cerebro cargado. Gíralo con el dedo o pulsa «Ver en mi espacio (RA)».'});
+viewer.addEventListener('error',()=>{document.getElementById('status').textContent='No se pudo cargar el cerebro. Revisa tu conexión e inténtalo de nuevo.'});
+</script></body></html>
