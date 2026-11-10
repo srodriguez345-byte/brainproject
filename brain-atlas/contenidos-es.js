@@ -7,3 +7,37 @@
  S.SYSTEMS.forEach(sys=>{sys.label=names[sys.id]||sys.label;(stages[sys.id]||[]).forEach((body,i)=>{if(sys.stages[i])sys.stages[i].body=body;});});
  S.LESSONS.forEach(l=>{if(intros[l.id])l.intro=intros[l.id];});
 })();
+
+/* Traducción de títulos y descripciones de tarjetas desde los datos. */
+(()=>{const S=window.SYS;if(!S)return;
+const systems={
+motor:["Sistema motor","Cómo se planifica, regula, perfecciona y transmite un movimiento hasta los músculos."],
+visual:["Procesamiento visual","De la retina al tálamo y la corteza visual: vías para reconocer qué vemos y dónde está."],
+auditory:["Vía auditiva","De la cóclea a los núcleos del tronco encefálico, el tálamo y la corteza auditiva."],
+somatosensory:["Vía somatosensorial","Del cuerpo a la médula espinal, el tálamo y la corteza somatosensorial primaria."],
+language:["Red del lenguaje","Cómo se conectan las regiones cerebrales relacionadas con la comprensión y producción del lenguaje."],
+limbic:["Sistema límbico y memoria","Circuitos relacionados con la memoria, las emociones y el hipocampo."],
+reward:["Recompensa y dopamina","Cómo actúan las vías dopaminérgicas relacionadas con la motivación y el aprendizaje."],
+csf:["Circulación del líquido cefalorraquídeo","Dónde se produce el líquido cefalorraquídeo, cómo circula y cómo se reabsorbe."]
+};
+const stages={
+motor:["Formación de la intención","La orden: corteza motora primaria","Circuito de los ganglios basales","Ajuste fino del cerebelo","La vía motora descendente","Cruce de fibras y activación muscular"],
+visual:["Del ojo al tálamo","Corteza visual primaria (V1)","Vía dorsal: dónde","Vía ventral: qué"],
+auditory:["Entrada al tronco encefálico","Relevo talámico","Corteza auditiva"],
+somatosensory:["Ascenso por la médula espinal","Relevo talámico","Corteza somatosensorial"],
+language:["Comprensión","Conexión entre regiones","Producción del habla"],
+limbic:["El hipocampo y la memoria","El circuito de Papez"],
+reward:["Origen de la dopamina","Vía mesolímbica","Vía mesocortical"],
+csf:["Producción del líquido cefalorraquídeo","De los ventrículos laterales al tercero","Del tercero al cuarto ventrículo","Salida y reabsorción"]
+};
+const lessons={
+l_motor:["El circuito motor","De un pensamiento a un movimiento: por qué el hemisferio izquierdo controla la mano derecha."],
+l_visual:["Visión: de la retina al reconocimiento","La vía visual y su división en dónde y qué."],
+l_limbic:["Cómo recordamos","Cómo participan el hipocampo y el sistema límbico en la memoria."],
+l_reward:["Recompensa y motivación","Las vías dopaminérgicas mesolímbica y mesocortical."],
+l_csf:["Los ventrículos y el líquido cefalorraquídeo","Dónde se produce y cómo circula el líquido cefalorraquídeo."],
+l_language:["La red del lenguaje","Las regiones de Wernicke y Broca y sus conexiones."]
+};
+S.SYSTEMS.forEach(x=>{const v=systems[x.id];if(v){x.label=v[0];x.blurb=v[1];}(stages[x.id]||[]).forEach((v,i)=>{if(x.stages[i])x.stages[i].title=v;});});
+S.LESSONS.forEach(x=>{const v=lessons[x.id];if(v){x.title=v[0];x.subtitle=v[1];}x.kicker="Recorrido funcional";x.level=x.level==="Core"?"Fundamental":x.level==="Advanced"?"Avanzado":x.level;});
+})();
