@@ -30,31 +30,32 @@ function select(id){const r=regions[id];document.getElementById('name').textCont
 marker.addEventListener('markerFound',()=>{hint.textContent='✅ HIRO detectado: debe verse un cubo verde. Si el cerebro no aparece, falla el modelo 3D.'});
 marker.addEventListener('markerLost',()=>{hint.textContent='⚠️ HIRO no detectado. Mantén el dibujo completo y bien iluminado frente a la cámara.'});
 model.addEventListener('model-loaded',()=>{
- const root=model.getObject3D('mesh');if(!root)return;modelRoot=root;
+ const root=model.getObject3D('mesh');if(!root)return;
  const THREE=AFRAME.THREE;
+ // Preserve geometry and transforms from the GLB, but remove non-brain parts.
  root.updateMatrixWorld(true);
- let box,size,center;
- const content=new THREE.Group();content.name='brain-normalized';
- const meshes=[];root.traverse(o=>{if(o.isMesh)meshes.push(o)});
- for(const m of meshes){const cat=m.userData?.bx_cat||m.parent?.userData?.bx_cat||'';
- if(!['cortex','cerebellum','brainstem'].includes(cat))m.visible=false;
- if(cat==='cortex'||cat==='cerebellum'||cat==='brainstem'){m.material=new THREE.MeshStandardMaterial({color:cat==='cortex'?0x8464ed:0x9d82f8,roughness:.42,metalness:.08,emissive:0x31117a,emissiveIntensity:.25})}}
- // Recalculate bounds after hiding extra structures, then apply scale to translation too.
- root.updateMatrixWorld(true);
- box=new THREE.Box3().setFromObject(root);size=box.getSize(new THREE.Vector3());center=box.getCenter(new THREE.Vector3());
- const k=.65/Math.max(size.x,size.y,size.z);
- root.scale.setScalar(k);root.position.copy(center).multiplyScalar(-k);
- root.updateMatrixWorld(true);
- const holder=document.createElement('a-entity');holder.setAttribute('position','0 0.18 0');marker.appendChild(holder);
- for(const [id,r] of Object.entries(regions)){
-  const dir=new THREE.Vector3(...r[2]).normalize();
-  const label=document.createElement('a-entity');label.setAttribute('position',dir.clone().multiplyScalar(.34).toArray().join(' '));
-  label.setAttribute('text',{value:r[0],align:'center',color:'#ffffff',width:.85,wrapCount:18});
-  label.setAttribute('geometry',{primitive:'plane',width:.35,height:.09});
-  label.setAttribute('material',{color:'#6d4cb2',opacity:.88,side:'double',depthTest:false});
-  label.setAttribute('look-at','[camera]');holder.appendChild(label);labels[id]=label;
- }
- hint.textContent='Cerebro reajustado y centrado. Enfoca HIRO para verlo sobre el marcador.';
+ const filtered=new THREE.Group();let count=0;
+ root.traverse(o=>{
+  if(!o.isMesh)return;
+  let node=o,cat='';
+  while(node&&node!==root){if(node.userData&&node.userData.bx_cat){cat=node.userData.bx_cat;break}node=node.parent}
+  if(!['cortex','cerebellum','brainstem'].includes(cat))return;
+  const mesh=o.clone();mesh.geometry=o.geometry;
+  mesh.material=new THREE.MeshStandardMaterial({color:cat==='cortex'?0x8464ed:0x9d82f8,roughness:.46,metalness:.04,emissive:0x31117a,emissiveIntensity:.22,side:THREE.DoubleSide});
+  mesh.matrixAutoUpdate=true;mesh.position.set(0,0,0);mesh.rotation.set(0,0,0);mesh.scale.set(1,1,1);
+  const transform=new THREE.Matrix4().copy(o.matrixWorld).premultiply(root.matrixWorld.clone().invert());
+  mesh.applyMatrix4(transform);filtered.add(mesh);count++;
+ });
+ if(!count){hint.textContent='No se encontraron las estructuras del cerebro. Revisaremos el archivo 3D.';return}
+ filtered.updateMatrixWorld(true);
+ const bounds=new THREE.Box3().setFromObject(filtered);
+ const size=bounds.getSize(new THREE.Vector3()),center=bounds.getCenter(new THREE.Vector3());
+ const k=.7/Math.max(size.x,size.y,size.z);
+ const centered=new THREE.Group();filtered.position.copy(center).multiplyScalar(-1);centered.add(filtered);centered.scale.setScalar(k);
+ const parent=root.parent;parent.remove(root);parent.add(centered);
+ modelRoot=centered;
+ document.getElementById('test-box').setAttribute('visible','false');
+ hint.textContent='Cerebro anatómico cargado ('+count+' estructuras). Enfoca HIRO para verlo.';
 });
 model.addEventListener('model-error',()=>{hint.textContent='No se pudo cargar el modelo anatómico en RA. Vuelve al visor 3D.'});
 </script></body></html>
