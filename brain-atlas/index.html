@@ -33,6 +33,7 @@
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="apple-touch-icon" href="favicon.svg" />
   <link rel="stylesheet" href="style.css?v=biomedica1" />
+  <link rel="stylesheet" href="mente-maestra.css?v=1" />
 
   <!-- Speed up the third-party model/runtime fetches a touch -->
   <link rel="preconnect" href="https://unpkg.com" crossorigin />
@@ -59,6 +60,28 @@
 </head>
 <body>
   <div id="root"></div>
+  <section id="mm-welcome" aria-label="Bienvenida a Mente Maestra">
+    <div class="mm-intro">
+      <div class="mm-kicker">Ingeniería biomédica · Experiencia interactiva</div>
+      <div class="mm-brain" aria-hidden="true">🧠</div>
+      <h1>MENTE MAESTRA</h1>
+      <p>Nuestro cerebro es pequeño, pero podemos imaginar sin límites.</p>
+      <button id="mm-start" class="mm-primary" type="button">Comenzar a explorar →</button>
+      <small>Descubre la anatomía cerebral en 3D y realidad aumentada.</small>
+    </div>
+  </section>
+  <button id="mm-present" type="button" aria-pressed="false">▣ Modo exposición</button>
+  <section id="mm-ar-help" role="dialog" aria-modal="true" aria-label="Instrucciones de realidad aumentada" hidden>
+    <div class="mm-help-card">
+      <h2>🧠 Realidad aumentada</h2>
+      <p>Para explorar el cerebro, permite el acceso a la cámara cuando el navegador lo solicite. Usa buena iluminación y mueve el celular lentamente.</p>
+      <p>Si prefieres utilizar el marcador HIRO, abre la opción «Abrir RA con HIRO» dentro del visor.</p>
+      <div class="mm-help-actions">
+        <button id="mm-ar-launch" class="mm-primary" type="button">Abrir cámara</button>
+        <button id="mm-ar-cancel" class="mm-secondary" type="button">Volver</button>
+      </div>
+    </div>
+  </section>
 
   <!-- Three.js (global build) + GLTF/Draco loaders for the real specimen -->
   <script src="https://unpkg.com/three@0.137.0/build/three.min.js"></script>
@@ -115,5 +138,6 @@ body.atlas-compact .atlas-resizable *{font-size:11px!important}
 (()=>{const btn=document.getElementById('atlas-panel-toggle');function findPanel(){const candidates=[...document.querySelectorAll('#root .glass')].filter(e=>{const r=e.getBoundingClientRect();return r.width>170&&r.height>250&&r.left<innerWidth*.55&&r.top<innerHeight*.55});return candidates.sort((a,b)=>b.getBoundingClientRect().height-a.getBoundingClientRect().height)[0]}
 btn.addEventListener('click',()=>{const compact=!document.body.classList.contains('atlas-compact');document.body.classList.toggle('atlas-compact',compact);document.querySelectorAll('.atlas-resizable').forEach(e=>e.classList.remove('atlas-resizable'));const panel=findPanel();if(panel)panel.classList.add('atlas-resizable');btn.textContent=compact?'↔ Ampliar panel':'↔ Reducir panel';btn.setAttribute('aria-pressed',String(compact))});})();
 </script>
+<script defer src="mente-maestra.js?v=1"></script>
 </body>
 </html>
