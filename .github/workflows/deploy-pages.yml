@@ -37,6 +37,7 @@ jobs:
         with:
           path: brain-atlas
 
+      # Publish the latest Mente Maestra changes, including the welcome screen.
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
