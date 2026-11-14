@@ -757,7 +757,9 @@
     function resize() {
       const r = dom.getBoundingClientRect();
       const w = Math.max(2, r.width), h = Math.max(2, r.height);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      // En teléfonos limitamos la resolución interna para ahorrar GPU y batería.
+      const mobile = window.matchMedia('(max-width: 760px), (pointer: coarse)').matches;
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, mobile ? 1.4 : 2));
       renderer.setSize(w, h, false);
       camera.aspect = w / h; camera.updateProjectionMatrix();
     }
