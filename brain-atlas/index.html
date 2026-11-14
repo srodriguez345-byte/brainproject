@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
   <!-- Primary SEO -->
@@ -32,8 +33,8 @@
 
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="apple-touch-icon" href="favicon.svg" />
-  <link rel="stylesheet" href="style.css?v=biomedica1" />
-  <link rel="stylesheet" href="mente-maestra.css?v=1" />
+  <link rel="stylesheet" href="style.css?v=mente-maestra-20261113" />
+  <link rel="stylesheet" href="mente-maestra.css?v=mente-maestra-20261113" />
 
   <!-- Speed up the third-party model/runtime fetches a touch -->
   <link rel="preconnect" href="https://unpkg.com" crossorigin />
@@ -138,6 +139,6 @@ body.atlas-compact .atlas-resizable *{font-size:11px!important}
 (()=>{const btn=document.getElementById('atlas-panel-toggle');function findPanel(){const candidates=[...document.querySelectorAll('#root .glass')].filter(e=>{const r=e.getBoundingClientRect();return r.width>170&&r.height>250&&r.left<innerWidth*.55&&r.top<innerHeight*.55});return candidates.sort((a,b)=>b.getBoundingClientRect().height-a.getBoundingClientRect().height)[0]}
 btn.addEventListener('click',()=>{const compact=!document.body.classList.contains('atlas-compact');document.body.classList.toggle('atlas-compact',compact);document.querySelectorAll('.atlas-resizable').forEach(e=>e.classList.remove('atlas-resizable'));const panel=findPanel();if(panel)panel.classList.add('atlas-resizable');btn.textContent=compact?'↔ Ampliar panel':'↔ Reducir panel';btn.setAttribute('aria-pressed',String(compact))});})();
 </script>
-<script defer src="mente-maestra.js?v=1"></script>
+<script defer src="mente-maestra.js?v=mente-maestra-20261113"></script>
 </body>
 </html>
